@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Carbapenamase-Producing Organism Matching Game — Carbapenem Resistance</title>
+  <style>
+    :root{
+      /* Theiagen-inspired light palette (blue/green) */
+      --bg0:#F4FBFA;
+      --bg1:#EAF7F6;
+      --card:#FFFFFF;
+      --card2:#F7FBFF;
+      --text:#0B1B2A;
+      --muted:#4C6A7F;
+
+      /* Brand accents (approx from theiagen.com look & feel) */
+      --teal:#0F8F86;
+      --teal2:#0B7C74;
+      --blue:#1B9BD7;
+      --blue2:#0B79C1;
+
+      --good:#1F9D62;
+      --bad:#D92D55;
+      --warn:#B54708;
+
+      --shadow: 0 14px 40px rgba(15,23,42,.12);
+      --radius: 18px;
+      --radius2: 14px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1100px 700px at 20% 0%, rgba(15,143,134,.18), transparent 60%),
+        radial-gradient(900px 600px at 85% 20%, rgba(27,155,215,.16), transparent 55%),
+        radial-gradient(800px 550px at 60% 95%, rgba(15,143,134,.12), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+    }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1100px 700px at 20% 0%, rgba(15,143,134,.18), transparent 60%),
+        radial-gradient(900px 600px at 85% 20%, rgba(27,155,215,.16), transparent 55%),
+        radial-gradient(800px 550px at 60% 95%, rgba(15,143,134,.12), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+    }
+
+    .app{
+      width:min(1100px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .topbar{
+      padding: 22px 24px 16px;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 14px;
+      background: linear-gradient(90deg, rgba(15,143,134,.16), rgba(27,155,215,.14));
+      border-bottom: 1px solid rgba(15,23,42,.10);
+      border-bottom: 1px solid rgba(15,23,42,.10);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      min-width: 260px;
+    }
+
+    .logo{
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background:
+        radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.30), transparent 55%),
+        linear-gradient(135deg, rgba(15,143,134,1), rgba(27,155,215,1));
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+      border: 1px solid rgba(15,23,42,.16);
+    }
+
+    h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.2px;
+      line-height: 1.15;
+    }
+    .subtitle{
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.25;
+      max-width: 520px;
+    }
+
+    .stats{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(15,23,42,.10);
+      box-shadow: 0 8px 18px rgba(0,0,0,.28);
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      min-width: 120px;
+      justify-content:space-between;
+      font-variant-numeric: tabular-nums;
+    }
+    .pill .label{
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+    .pill .value{
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .controls{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+
+    button{
+      cursor:pointer;
+      border:none;
+      color: var(--text);
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(15,23,42,.12);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing:.2px;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,.24);
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      user-select:none;
+    }
+    button:hover{
+      background: rgba(255,255,255,.90);
+      border-color: rgba(15,23,42,.16);
+    }
+    button:active{ transform: translateY(1px) scale(.99); }
+
+    .primary{
+      background: linear-gradient(135deg, rgba(15,143,134,.98), rgba(27,155,215,.98));
+      border: 1px solid rgba(15,23,42,.14);
+      box-shadow: 0 16px 30px rgba(15,23,42,.18);
+      border: 1px solid rgba(15,23,42,.16);
+      box-shadow: 0 16px 30px rgba(0,0,0,.34);
+    }
+    .primary:hover{
+      background: linear-gradient(135deg, rgba(15,143,134,1), rgba(27,155,215,1));
+    }
+
+    .content{
+      padding: 20px 24px 26px;
+    }
+
+    .help{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 14px;
+      flex-wrap:wrap;
+      margin-bottom: 14px;
+    }
+    .tip{
+      flex: 1 1 440px;
+      background: rgba(255,255,255,.70);
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .tip strong{ color: var(--text); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items:start;
+    }
+
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+      .stats{ justify-content:flex-start; }
+    }
+
+    .column{
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: var(--radius);
+      padding: 14px;
+      overflow:hidden;
+    }
+
+    .col-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 2px 4px 12px;
+      border-bottom: 1px solid rgba(15,23,42,.10);
+      margin-bottom: 12px;
+    }
+    .col-title h2{
+      margin:0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing:.6px;
+      text-transform: uppercase;
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+
+    .card{
+      position:relative;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.70));
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: var(--radius2);
+      padding: 12px 12px;
+      box-shadow: 0 12px 24px rgba(0,0,0,.26);
+      cursor:pointer;
+      user-select:none;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+      min-height: 56px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .card:hover{
+      border-color: rgba(15,23,42,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.86));
+    }
+    .card:active{ transform: translateY(1px) scale(.995); }
+
+    .badge{
+      min-width: 44px;
+      height: 32px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
+      letter-spacing:.4px;
+      background: rgba(15,143,134,.22);
+      border: 1px solid rgba(15,143,134,.55);
+      color: #06312E;
+      font-variant-numeric: tabular-nums;
+      flex: 0 0 auto;
+    }
+
+    .text{
+      font-size: 13.5px;
+      line-height: 1.25;
+      color: var(--text);
+    }
+    .text small{
+      display:block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+
+    .card.selected{
+      outline: 2px solid rgba(15,143,134,.65);
+      border-color: rgba(15,143,134,.65);
+      box-shadow: 0 0 0 4px rgba(15,143,134,.16), 0 14px 26px rgba(0,0,0,.30);
+    }
+
+    .card.matched{
+      cursor: default;
+      opacity: .85;
+      border-color: rgba(50,213,131,.35);
+      background: linear-gradient(180deg, rgba(50,213,131,.12), rgba(255,255,255,.70));
+    }
+    .card.matched .badge{
+      background: rgba(31,157,98,.22);
+      border-color: rgba(31,157,98,.55);
+      color: #0B1B2A;
+    }
+
+    .card.wrong{
+      animation: shake .35s ease;
+      outline: 2px solid rgba(255,92,122,.55);
+      border-color: rgba(255,92,122,.55);
+      box-shadow: 0 0 0 4px rgba(255,92,122,.12), 0 14px 26px rgba(0,0,0,.30);
+    }
+
+    @keyframes shake{
+      0%{ transform: translateX(0); }
+      25%{ transform: translateX(-5px); }
+      50%{ transform: translateX(5px); }
+      75%{ transform: translateX(-3px); }
+      100%{ transform: translateX(0); }
+    }
+
+    .footer{
+      margin-top: 16px;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 0 4px;
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(15,23,42,.16);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+    }
+    .dot.ready{ background: rgba(255,255,255,.22); }
+    .dot.go{ background: rgba(255,204,102,.85); box-shadow: 0 0 0 4px rgba(255,204,102,.18); }
+    .dot.good{ background: rgba(50,213,131,.95); box-shadow: 0 0 0 4px rgba(50,213,131,.18); }
+    .dot.bad{ background: rgba(255,92,122,.95); box-shadow: 0 0 0 4px rgba(255,92,122,.18); }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+      background: rgba(15,23,42,.30);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .modal.show{ display:flex; }
+    .modal-card{
+      width:min(560px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.92));
+      border: 1px solid rgba(15,23,42,.14);
+      border-radius: 22px;
+      box-shadow: 0 24px 60px rgba(15,23,42,.30);
+      padding: 18px 18px 16px;
+    }
+    .modal-card h3{
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .results{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 10px 0 14px;
+      font-variant-numeric: tabular-nums;
+    }
+    .results .pill{
+      min-width: 0;
+      justify-content:space-between;
+    }
+    .modal-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .smallnote{
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.35;
+    }
+  
+    a{
+      color: var(--blue2);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    a:hover{ text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Carbapenamase-Producing Organism Matching Game</h1>
+          <div class="subtitle">Match the abbreviation to its full explanation as fast as you can. Timer starts on your first click.</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="pill" title="Elapsed time">
+          <span class="label">TIME</span>
+          <span class="value" id="time">0.0s</span>
+        </div>
+        <div class="pill" title="Number of match attempts">
+          <span class="label">MOVES</span>
+          <span class="value" id="moves">0</span>
+        </div>
+        <div class="pill" title="Correct matches / attempts">
+          <span class="label">ACCURACY</span>
+          <span class="value" id="accuracy">—</span>
+        </div>
+        <div class="pill" title="Fastest completion time on this device/browser">
+          <span class="label">BEST</span>
+          <span class="value" id="best">—</span>
+        </div>
+
+        <div class="controls">
+          <button id="shuffleBtn" class="primary" title="Shuffle and restart">
+            ↻ Shuffle
+          </button>
+          <button id="restartBtn" title="Restart with same order">
+            ⟲ Restart
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="help">
+        <div class="tip">
+          <strong>How to play:</strong> Click one abbreviation, then click the matching definition.
+          If you’re correct, both lock in. Finish all pairs to stop the timer.
+          <br/><br/>
+          <strong>Tip:</strong> Try to improve your time — your best is saved locally.
+        </div>
+        <div class="status">
+          <span class="dot ready" id="statusDot" aria-hidden="true"></span>
+          <span id="statusText">Ready</span>
+        </div>
+      </div>
+
+      <div class="grid" role="application" aria-label="Matching game">
+        <div class="column">
+          <div class="col-title">
+            <h2>Abbreviations</h2>
+          </div>
+          <div class="list" id="abbrList"></div>
+        </div>
+
+        <div class="column">
+          <div class="col-title">
+            <h2>Definitions</h2>
+          </div>
+          <div class="list" id="defList"></div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div><div style="margin-top:10px;">
+          Acronyms taken from <em>"Carbapenemase Testing for Carbapenem-Resistant Organisms (CRO) A Primer for Clinical and Public Health Laboratories"</em>
+          published by CDPH and available
+          <a href="https://www.cdph.ca.gov/Programs/CHCQ/HAI/CDPH%20Document%20Library/CRO_PrimerTests_for_Carbapenemases.pdf" target="_blank" rel="noopener">here</a>.
+        </div></div>
+        <div id="pairsLeft">Pairs left: 10</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h3 id="modalTitle">✅ Completed!</h3>
+      <div class="results">
+        <div class="pill">
+          <span class="label">TIME</span>
+          <span class="value" id="finalTime">0.0s</span>
+        </div>
+        <div class="pill">
+          <span class="label">MOVES</span>
+          <span class="value" id="finalMoves">0</span>
+        </div>
+        <div class="pill">
+          <span class="label">ACCURACY</span>
+          <span class="value" id="finalAccuracy">—</span>
+        </div>
+        <div class="pill">
+          <span class="label">BEST</span>
+          <span class="value" id="finalBest">—</span>
+        </div>
+      </div>
+
+      <div class="smallnote">
+        Want to make it harder? Duplicate the list with more abbreviations, or add a “hard mode” timer penalty for wrong matches.
+      </div>
+
+      <div class="modal-actions">
+        <button id="closeModalBtn">Close</button>
+        <button id="playAgainBtn" class="primary">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pairs = [
+      { id: "AST", abbr: "AST", def: "Antimicrobial susceptibility test" },
+      { id: "CRO", abbr: "CRO", def: "carbapenem-resistant organism" },
+      { id: "CRAB", abbr: "CRAB", def: "carbapenem-resistant Acinetobacter baumannii" },
+      { id: "CRE", abbr: "CRE", def: "carbapenem-resistant Enterobacterales" },
+      { id: "CRPA", abbr: "CRPA", def: "carbapenem-resistant Pseudomonas aeruginosa" },
+      { id: "CPO", abbr: "CPO", def: "carbapenemase-producing or carbapenemase gene-positive organism" },
+      { id: "CP-CRAB or CPAB", abbr: "CP-CRAB or CPAB", def: "carbapenemase-producing Acinetobacter baumannii" },
+      { id: "CP-CRE or CPE", abbr: "CP-CRE or CPE", def: "carbapenemase-producing Enterobacterales" },
+      { id: "CP-CRPA or CPPA", abbr: "CP-CRPA or CPPA", def: "carbapenemase-producing Pseudomonas aeruginosa" },
+      { id: "Non-CP-CRO", abbr: "Non-CP-CRO", def: "non carbapenemase-producing, carbapenem-resistant organism" },
+    ];
+
+    let selected = null;
+    let matchedIds = new Set();
+
+    let timerRunning = false;
+    let startTime = 0;
+    let raf = null;
+
+    let moves = 0;
+    let attempts = 0;
+    let correct = 0;
+
+    const BEST_KEY = "theiagen_abbrev_match_best_time_ms";
+
+    const abbrList = document.getElementById("abbrList");
+    const defList = document.getElementById("defList");
+
+    const timeEl = document.getElementById("time");
+    const movesEl = document.getElementById("moves");
+    const accuracyEl = document.getElementById("accuracy");
+    const bestEl = document.getElementById("best");
+    const pairsLeftEl = document.getElementById("pairsLeft");
+
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+
+    const modal = document.getElementById("modal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+
+    const finalTimeEl = document.getElementById("finalTime");
+    const finalMovesEl = document.getElementById("finalMoves");
+    const finalAccuracyEl = document.getElementById("finalAccuracy");
+    const finalBestEl = document.getElementById("finalBest");
+
+    function shuffleArray(arr){
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function msToPretty(ms){
+      const s = ms / 1000;
+      return s.toFixed(1) + "s";
+    }
+
+    function nowMs(){ return performance.now(); }
+
+    function setStatus(mode, text){
+      statusDot.className = "dot " + mode;
+      statusText.textContent = text;
+    }
+
+    function updatePairsLeft(){
+      const left = pairs.length - matchedIds.size;
+      pairsLeftEl.textContent = "Pairs left: " + left;
+    }
+
+    function updateBestDisplay(){
+      const best = localStorage.getItem(BEST_KEY);
+      bestEl.textContent = best ? msToPretty(Number(best)) : "—";
+    }
+
+    function updateAccuracy(){
+      if(attempts === 0){
+        accuracyEl.textContent = "—";
+        return;
+      }
+      const pct = Math.round((correct / attempts) * 100);
+      accuracyEl.textContent = pct + "%";
+    }
+
+    function updateMoves(){ movesEl.textContent = String(moves); }
+
+    function updateTime(){
+      if(!timerRunning) return;
+      const elapsed = nowMs() - startTime;
+      timeEl.textContent = msToPretty(elapsed);
+      raf = requestAnimationFrame(updateTime);
+    }
+
+    function startTimer(){
+      if(timerRunning) return;
+      timerRunning = true;
+      startTime = nowMs();
+      setStatus("go", "Go!");
+      raf = requestAnimationFrame(updateTime);
+    }
+
+    function stopTimer(){
+      if(!timerRunning) return;
+      timerRunning = false;
+      if(raf) cancelAnimationFrame(raf);
+      raf = null;
+    }
+
+    function clearSelection(){
+      if(selected?.el) selected.el.classList.remove("selected");
+      selected = null;
+    }
+
+    function markWrong(a, b){
+      a.classList.add("wrong"); b.classList.add("wrong");
+      setTimeout(() => { a.classList.remove("wrong"); b.classList.remove("wrong"); }, 380);
+      setStatus("bad", "Not a match");
+      setTimeout(() => {
+        if(matchedIds.size < pairs.length){
+          setStatus(timerRunning ? "go" : "ready", timerRunning ? "Go!" : "Ready");
+        }
+      }, 520);
+    }
+
+    function markMatched(a, b){
+      a.classList.remove("selected");
+      b.classList.remove("selected");
+      a.classList.add("matched");
+      b.classList.add("matched");
+      setStatus("good", "Matched!");
+      setTimeout(() => {
+        if(matchedIds.size < pairs.length){
+          setStatus(timerRunning ? "go" : "ready", timerRunning ? "Go!" : "Ready");
+        }
+      }, 520);
+    }
+
+    function openModal(finalMs){
+      const prevBest = localStorage.getItem(BEST_KEY);
+      let best = prevBest ? Number(prevBest) : null;
+      if(best === null || finalMs < best){
+        best = finalMs;
+        localStorage.setItem(BEST_KEY, String(best));
+      }
+      updateBestDisplay();
+
+      finalTimeEl.textContent = msToPretty(finalMs);
+      finalMovesEl.textContent = String(moves);
+      finalAccuracyEl.textContent = accuracyEl.textContent;
+      finalBestEl.textContent = best ? msToPretty(best) : "—";
+
+      modal.classList.add("show");
+    }
+
+    function closeModal(){ modal.classList.remove("show"); }
+
+    function onCardClick(side, id, el){
+      if(matchedIds.has(id)) return;
+      startTimer();
+
+      if(!selected){
+        selected = { side, id, el };
+        el.classList.add("selected");
+        setStatus("go", "Pick the match");
+        return;
+      }
+
+      if(selected.side === side){
+        selected.el.classList.remove("selected");
+        selected = { side, id, el };
+        el.classList.add("selected");
+        return;
+      }
+
+      moves += 1;
+      attempts += 1;
+      updateMoves();
+
+      const first = selected;
+      const second = { side, id, el };
+
+      if(first.id === second.id){
+        correct += 1;
+        matchedIds.add(id);
+        updateAccuracy();
+        markMatched(first.el, second.el);
+        clearSelection();
+        updatePairsLeft();
+
+        if(matchedIds.size === pairs.length){
+          stopTimer();
+          setStatus("good", "Complete!");
+          const finalMs = nowMs() - startTime;
+          timeEl.textContent = msToPretty(finalMs);
+          openModal(finalMs);
+        }
+      } else {
+        updateAccuracy();
+        markWrong(first.el, second.el);
+        clearSelection();
+      }
+    }
+
+    function makeCard({ side, id, main, sub }, index){
+      const div = document.createElement("div");
+      div.className = "card";
+      div.tabIndex = 0;
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-label", `${side === "abbr" ? "Abbreviation" : "Definition"} card: ${main}`);
+      div.dataset.side = side;
+      div.dataset.id = id;
+
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.textContent = String(index + 1);
+
+      const text = document.createElement("div");
+      text.className = "text";
+      text.textContent = main;
+
+      if(sub){
+        const small = document.createElement("small");
+        small.textContent = sub;
+        text.appendChild(small);
+      }
+
+      div.appendChild(badge);
+      div.appendChild(text);
+
+      const handler = () => onCardClick(side, id, div);
+      div.addEventListener("click", handler);
+      div.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          handler();
+        }
+      });
+
+      return div;
+    }
+
+    function resetState(){
+      matchedIds = new Set();
+      selected = null;
+
+      timerRunning = false;
+      if(raf) cancelAnimationFrame(raf);
+      raf = null;
+      startTime = 0;
+
+      moves = 0;
+      attempts = 0;
+      correct = 0;
+
+      timeEl.textContent = "0.0s";
+      updateMoves();
+      updateAccuracy();
+      updatePairsLeft();
+      setStatus("ready", "Ready");
+    }
+
+    function render({ shuffle = true } = {}){
+      resetState();
+      abbrList.innerHTML = "";
+      defList.innerHTML = "";
+
+      const abbrItems = pairs.map(p => ({ id: p.id, main: p.abbr, sub: "Click to match" }));
+      const defItems  = pairs.map(p => ({ id: p.id, main: p.def, sub: "" }));
+
+      if(shuffle){
+        shuffleArray(abbrItems);
+        shuffleArray(defItems);
+      }
+
+      abbrItems.forEach((item, idx) => abbrList.appendChild(
+        makeCard({ side: "abbr", id: item.id, main: item.main, sub: item.sub }, idx)
+      ));
+      defItems.forEach((item, idx) => defList.appendChild(
+        makeCard({ side: "def", id: item.id, main: item.main, sub: item.sub }, idx)
+      ));
+
+      updateBestDisplay();
+    }
+
+    shuffleBtn.addEventListener("click", () => { closeModal(); render({ shuffle: true }); });
+    restartBtn.addEventListener("click", () => { closeModal(); render({ shuffle: false }); });
+
+    closeModalBtn.addEventListener("click", closeModal);
+    playAgainBtn.addEventListener("click", () => { closeModal(); render({ shuffle: true }); });
+
+    modal.addEventListener("click", (e) => { if(e.target === modal) closeModal(); });
+    document.addEventListener("keydown", (e) => { if(e.key === "Escape" && modal.classList.contains("show")) closeModal(); });
+
+    render({ shuffle: true });
+  </script>
+</body>
+</html>
